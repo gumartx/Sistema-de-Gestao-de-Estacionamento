@@ -3,46 +3,41 @@ package model.entities;
 import java.io.Serializable;
 import java.util.Objects;
 
-import model.enums.GateType;
-import model.enums.Restriction;
-
-public class Gate implements Serializable {
+public class ParkingSpot implements Serializable {
 	private static final long serialVersionUID = 1L;
-	
+
 	private Integer id;
 	private Integer number;
-	private GateType type;
-	private Restriction restriction = Restriction.NONE;
-	
-	public Gate(Integer id, Integer number, GateType type, Restriction restriction) {
+	private boolean status = false;
+
+	public ParkingSpot(Integer id, Integer number, boolean status) {
 		this.id = id;
 		this.number = number;
-		this.type = type;
-		this.restriction = restriction;
+		this.status = status;
 	}
+
 	public Integer getId() {
 		return id;
 	}
+
 	public void setId(Integer id) {
 		this.id = id;
 	}
+
 	public Integer getNumber() {
 		return number;
 	}
+
 	public void setNumber(Integer number) {
 		this.number = number;
 	}
-	public GateType getType() {
-		return type;
+
+	public boolean isStatus() {
+		return status;
 	}
-	public void setType(GateType type) {
-		this.type = type;
-	}
-	public Restriction getRestriction() {
-		return restriction;
-	}
-	public void setRestriction(Restriction restriction) {
-		this.restriction = restriction;
+
+	public void setStatus(boolean status) {
+		this.status = status;
 	}
 
 	@Override
@@ -58,9 +53,8 @@ public class Gate implements Serializable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Gate other = (Gate) obj;
+		ParkingSpot other = (ParkingSpot) obj;
 		return Objects.equals(id, other.id);
 	}
-	
-	
+
 }
