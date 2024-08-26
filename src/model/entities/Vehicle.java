@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 import model.enums.Category;
-import model.enums.Type;
+import model.enums.VehicleType;
 
 public class Vehicle implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -12,9 +12,9 @@ public class Vehicle implements Serializable {
 	private Integer id;
 	private String plate;
 	private Category category;
-	private Type type;
+	private VehicleType type;
 
-	public Vehicle(Integer id, String plate, Category category, Type type) {
+	public Vehicle(Integer id, String plate, Category category, VehicleType type) {
 		this.id = id;
 		this.plate = plate;
 		this.category = category;
@@ -45,11 +45,11 @@ public class Vehicle implements Serializable {
 		this.category = category;
 	}
 
-	public Type getType() {
+	public VehicleType getType() {
 		return type;
 	}
 
-	public void setType(Type type) {
+	public void setType(VehicleType type) {
 		this.type = type;
 	}
 

@@ -2,9 +2,9 @@ package model.enums;
 
 public enum Category {
 	
-	MONTHLY,
+	SUBSCRIBER,
 	DELIVERY_TRUCK,
-	SEPARATE,
+	CASUAL,
 	PUBLIC_SERVICE;
 
 }
