@@ -1,5 +1,6 @@
 package parking;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 import model.entities.Gate;
@@ -11,6 +12,8 @@ import model.enums.GateType;
 import model.enums.Restriction;
 import model.enums.VehicleType;
 import model.exceptions.GateException;
+import model.exceptions.TicketException;
+import model.exceptions.VehicleException;
 
 public class Parking {
 
@@ -30,6 +33,17 @@ public class Parking {
 		} else {
 			throw new GateException("Entry not allowed for this vehicle at this gate.");
 		}
+	}
+	
+	public void registerExit(Ticket ticket, Gate gate) {
+	    ticket.setExitTime(LocalDateTime.now());
+	    ticket.setExitGate(gate);
+
+	    double amountPaid = calculateAmount(ticket);
+	    ticket.setAmountPaid(amountPaid);
+
+	    ticket.getParkingSpot().setStatus(false);
+
 	}
 
 	public boolean validateEntry(Vehicle vehicle, Gate gate) {
@@ -67,6 +81,44 @@ public class Parking {
 		}
 		
 		return false;
+	}
+	
+	public double calculateAmount(Ticket ticket) {
+	    Category vehicleCategory = ticket.getVehicle().getCategory();
+	    double amount = 0.0;
+
+	    switch (vehicleCategory) {
+	        case SUBSCRIBER:
+	            amount = 250.00;
+	            break;
+
+	        case DELIVERY_TRUCK:
+	        case CASUAL:
+	            LocalDateTime entryTime = ticket.getEntryTime();
+	            LocalDateTime exitTime = ticket.getExitTime();
+
+	            if (exitTime == null) {
+	                throw new TicketException("Exit time is not recorded.");
+	            }
+
+	            long minutesParked = Duration.between(entryTime, exitTime).toMinutes();
+
+	            amount = minutesParked * 0.10;
+
+	            if (amount < 5.00) {
+	                amount = 5.00;
+	            }
+	            break;
+
+	        case PUBLIC_SERVICE:
+	            amount = 0.00;
+	            break;
+
+	        default:
+	            throw new VehicleException("Unknown vehicle category.");
+	    }
+
+	    return amount;
 	}
 
 }
