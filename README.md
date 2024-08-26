@@ -1,6 +1,6 @@
 # Sistema de Estacionamento
 
-atividade 03
+Desenvolva um sistema de gestão de estacionamento para um shopping, utilizando apenas Java e MySQL. O sistema deve gerenciar o número de vagas disponíveis, registrar a entrada e saída de veículos por diferentes cancelas, calcular o valor a ser pago pelo tempo de permanência e garantir que as regras específicas de entrada e saída sejam respeitadas. O sistema também deve permitir o cadastro de veículos mensalistas e caminhões de entrega, enquanto veículos avulsos e de serviço público não precisam ser previamente cadastrados.
 
 ## Requisitos
 
