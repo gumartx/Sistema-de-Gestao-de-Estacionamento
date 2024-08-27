@@ -21,7 +21,7 @@ public class Parking {
 		if (validateEntry(vehicle, gate)) {
 			Ticket ticket = new Ticket();
 			ticket.setVehicle(vehicle);
-			ticket.setGate(gate);
+			ticket.setEntryGate(gate);
 			ticket.setParkingSpot(spot);
 			ticket.setEntryTime(LocalDateTime.now());
 
@@ -45,7 +45,7 @@ public class Parking {
 		}
 		
 	    ticket.setExitTime(LocalDateTime.now());
-	    ticket.setGate(gate);
+	    ticket.setExitGate(gate);
 
 	    double amountPaid = calculateAmount(ticket);
 	    ticket.setAmountPaid(amountPaid);
