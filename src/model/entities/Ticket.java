@@ -9,19 +9,17 @@ public class Ticket implements Serializable {
 
 	private Integer id;
 	private Vehicle vehicle;
-	private Gate entryGate;
-	private Gate exitGate;
+	private Gate gate;
 	private ParkingSpot parkingSpot;
 	private LocalDateTime entryTime;
 	private LocalDateTime exitTime;
 	private Double amountPaid;
 
-	public Ticket(Integer id, Vehicle vehicle, Gate entryGate, Gate exitGate, ParkingSpot parkingSpot,
-			LocalDateTime entryTime, LocalDateTime exitTime, Double amountPaid) {
+	public Ticket(Integer id, Vehicle vehicle, Gate gate, ParkingSpot parkingSpot, LocalDateTime entryTime,
+			LocalDateTime exitTime, Double amountPaid) {
 		this.id = id;
 		this.vehicle = vehicle;
-		this.entryGate = entryGate;
-		this.exitGate = exitGate;
+		this.gate = gate;
 		this.parkingSpot = parkingSpot;
 		this.entryTime = entryTime;
 		this.exitTime = exitTime;
@@ -47,20 +45,12 @@ public class Ticket implements Serializable {
 		this.vehicle = vehicle;
 	}
 
-	public Gate getEntryGate() {
-		return entryGate;
+	public Gate getGate() {
+		return gate;
 	}
 
-	public void setEntryGate(Gate entryGate) {
-		this.entryGate = entryGate;
-	}
-
-	public Gate getExitGate() {
-		return exitGate;
-	}
-
-	public void setExitGate(Gate exitGate) {
-		this.exitGate = exitGate;
+	public void setGate(Gate gate) {
+		this.gate = gate;
 	}
 
 	public ParkingSpot getParkingSpot() {

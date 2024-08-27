@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.Objects;
 
 import model.enums.GateType;
-import model.enums.Restriction;
 
 public class Gate implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -12,13 +11,11 @@ public class Gate implements Serializable {
 	private Integer id;
 	private Integer number;
 	private GateType type;
-	private Restriction restriction = Restriction.NONE;
 	
-	public Gate(Integer id, Integer number, GateType type, Restriction restriction) {
+	public Gate(Integer id, Integer number, GateType type) {
 		this.id = id;
 		this.number = number;
 		this.type = type;
-		this.restriction = restriction;
 	}
 	public Integer getId() {
 		return id;
@@ -37,12 +34,6 @@ public class Gate implements Serializable {
 	}
 	public void setType(GateType type) {
 		this.type = type;
-	}
-	public Restriction getRestriction() {
-		return restriction;
-	}
-	public void setRestriction(Restriction restriction) {
-		this.restriction = restriction;
 	}
 
 	@Override
