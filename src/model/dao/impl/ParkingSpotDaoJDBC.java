@@ -93,7 +93,7 @@ public class ParkingSpotDaoJDBC implements ParkingSpotDao {
 		ResultSet rs = null;
 		try {
 			st = conn.prepareStatement(
-					"select parking_spot.* from parking_spot order by number");
+					"select parking_spot.* from parking_spot where status = false order by spot_number");
 
 			rs = st.executeQuery();
 

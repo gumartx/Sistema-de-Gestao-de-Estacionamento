@@ -9,9 +9,7 @@ import model.enums.VehicleType;
 
 public class VehicleRegistration {
 	
-	public static void register(VehicleDao vehicleDao) {
-		
-		Scanner sc = new Scanner(System.in);
+	public static void register(VehicleDao vehicleDao, Scanner sc) {
 
 		System.out.print("Deseja cadastrar um veículo (s/n)? ");
 		char n = sc.next().charAt(0);
@@ -34,7 +32,6 @@ public class VehicleRegistration {
 			System.out.print("\nDeseja cadastrar um veículo (s/n)? ");
 			n = sc.next().charAt(0);
 		}
-		sc.close();
 	}
 	
 }

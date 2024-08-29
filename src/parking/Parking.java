@@ -2,8 +2,11 @@ package parking;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import model.dao.ParkingSpotDao;
 import model.entities.Gate;
 import model.entities.ParkingSpot;
 import model.entities.Ticket;
@@ -18,35 +21,47 @@ import parking.exceptions.ParkingException;
 
 public class Parking {
 
-	public static Ticket registerEntry(Vehicle vehicle, Gate gate, List<ParkingSpot> spot) {
-
+	public static void registerEntry(Vehicle vehicle, Gate gate, List<ParkingSpot> spot, ParkingSpotDao parkingDao) {
+		
 		if (validateEntry(vehicle, gate, spot)) {
 			Ticket ticket = new Ticket();
 			ticket.setVehicle(vehicle);
 			ticket.setEntryGate(gate);
 			ticket.setEntryTime(LocalDateTime.now());
 
+			Map<Integer, Vehicle> map = new HashMap<>();
+			
 			for (ParkingSpot s : spot) {
+
+				Vehicle vec = map.get(vehicle.getId());
+
+				if (vec == null) {
+					vec = vehicle;
+					map.put(vehicle.getId(), vec);
+				}
+				
+				s.setVehicle(vec);
+				
 				s.setStatus(true);
 				ticket.getSpots().add(s);
+				
+				parkingDao.update(s);
 			}
-
-			return ticket;
 
 		} else {
 			throw new GateException("Entry not allowed for this vehicle at this gate.");
 		}
 	}
 
-	public static boolean registerExit(Ticket ticket, Gate gate) {
+	public static Ticket registerExit(Ticket ticket, Gate gate) {
 		VehicleType type = ticket.getVehicle().getType();
 		
 		if (!gate.getType().equals(GateType.EXIT)) {
-			return false;
+			throw new ParkingException("Exit not allowed at this gate");
 		}
 
 		if (type == VehicleType.MOTORCYCLE && gate.getNumber() != 10) {
-			return false;
+			throw new ParkingException("Exit not allowed for this vehicle at this gate");
 		}
 
 		ticket.setExitTime(LocalDateTime.now());
@@ -59,7 +74,7 @@ public class Parking {
 			s.setStatus(false);
 		}
 
-		return true;
+		return ticket;
 	}
 
 	public static int getVehicleSpotSize(Vehicle vehicle) {

@@ -78,6 +78,33 @@ public class VehicleDaoJDBC implements VehicleDao {
 
 		return null;
 	}
+	
+	@Override
+	public Vehicle findByPlate(String id) {
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		try {
+
+			st = conn.prepareStatement("select vehicle.* from vehicle where license_plate = ?");
+
+			st.setString(1, id);
+
+			rs = st.executeQuery();
+
+			if (rs.next()) {
+				Vehicle vehicle = instantiateVehicle(rs);
+				return vehicle;
+			}
+
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+			DB.closeResultSet(rs);
+		}
+
+		return null;
+	}
 
 	private Vehicle instantiateVehicle(ResultSet rs) throws SQLException {
 		Vehicle vehicle = new Vehicle(rs.getInt("id"), rs.getString("license_plate"), Category.valueOf(rs.getString("category").toUpperCase()), VehicleType.valueOf(rs.getString("type").toUpperCase()));
