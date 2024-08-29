@@ -1,63 +1,44 @@
 package application;
 
-import java.sql.Connection;
-import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
 
-import db.DB;
+import model.dao.DaoFactory;
 import model.dao.GateDao;
+import model.dao.ParkingSpotDao;
 import model.dao.VehicleDao;
-import model.dao.impl.GateDaoJDBC;
-import model.dao.impl.VehicleDaoJDBC;
-import model.entities.Car;
-import model.entities.DeliveryTruck;
-import model.entities.Motorcycle;
-import model.entities.PublicService;
+import model.entities.Gate;
+import model.entities.ParkingSpot;
+import model.entities.Ticket;
 import model.entities.Vehicle;
 import model.enums.Category;
+import parking.Parking;
+import parking.VehicleRegistration;
 
 public class Program {
 
 	public static void main(String[] args) {
 
-		Connection conn = DB.getConnection();
-		VehicleDao vehicleDao = new VehicleDaoJDBC(conn);
-		GateDao gateDao = new GateDaoJDBC(conn);
+		VehicleDao vehicleDao = DaoFactory.createVehicleDao();
+		GateDao gateDao = DaoFactory.createGateDao();
+		ParkingSpotDao parkingDao = DaoFactory.createParkingSpotDao();
 
-		Scanner sc = new Scanner(System.in);
+		VehicleRegistration.register(vehicleDao);
 
-		System.out.print("Deseja cadastrar um veículo (s/n)? ");
-		char n = sc.next().charAt(0);
+		Vehicle v = vehicleDao.findById(24);
+		Gate g = gateDao.findById(5);
+		Gate g1 = gateDao.findById(10);
+		int spots = Parking.getVehicleSpotSize(v);
+		List<ParkingSpot> list = new ArrayList<>();
 
-		if (n == 's') {
-			System.out.println("Vehicle data:");
-			System.out.print("Enter with the license plate: ");
-			String plate = sc.next();
+		ParkingSpot p = parkingDao.findByNumber(1);
+		list.add(p);
 
-			System.out.print("Category of the vehicle (SUBSCRIBER, DELIVERY_TRUCK, CASUAL, PUBLIC_SERVICE): ");
-			Category category = Category.valueOf(sc.next());
+		Ticket ticket = Parking.registerEntry(v, g, list);
+		boolean r = Parking.registerExit(ticket, g1);
 
-			Vehicle vehicle;
-			System.out.print("Vehicle type (C/M/P/D): ");
-			char vehicleType = sc.next().charAt(0);
+		System.out.println(ticket);
 
-			switch (vehicleType) {
-			case 'M':
-				vehicle = new Motorcycle(null, plate, category);
-				break;
-			case 'P':
-				vehicle = new PublicService(null, plate, category);
-				break;
-			case 'D':
-				vehicle = new DeliveryTruck(null, plate, category);
-				break;
-			default:
-				vehicle = new Car(null, plate, category);
-			}
-			
-			vehicleDao.insert(vehicle);
-		}
-		
-		
 	}
 
 }

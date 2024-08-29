@@ -2,16 +2,21 @@ package model.entities;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class Ticket implements Serializable {
 	private static final long serialVersionUID = 1L;
 
+	private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
 	private Integer id;
 	private Vehicle vehicle;
 	private Gate exitGate;
 	private Gate entryGate;
-	private ParkingSpot parkingSpot;
+	private List<ParkingSpot> spots = new ArrayList<>();
 	private LocalDateTime entryTime;
 	private LocalDateTime exitTime;
 	private Double amountPaid;
@@ -19,13 +24,12 @@ public class Ticket implements Serializable {
 	public Ticket() {
 	}
 
-	public Ticket(Integer id, Vehicle vehicle, Gate exitGate, Gate entryGate, ParkingSpot parkingSpot,
-			LocalDateTime entryTime, LocalDateTime exitTime, Double amountPaid) {
+	public Ticket(Integer id, Vehicle vehicle, Gate exitGate, Gate entryGate, LocalDateTime entryTime,
+			LocalDateTime exitTime, Double amountPaid) {
 		this.id = id;
 		this.vehicle = vehicle;
 		this.exitGate = exitGate;
 		this.entryGate = entryGate;
-		this.parkingSpot = parkingSpot;
 		this.entryTime = entryTime;
 		this.exitTime = exitTime;
 		this.amountPaid = amountPaid;
@@ -63,12 +67,8 @@ public class Ticket implements Serializable {
 		this.entryGate = entryGate;
 	}
 
-	public ParkingSpot getParkingSpot() {
-		return parkingSpot;
-	}
-
-	public void setParkingSpot(ParkingSpot parkingSpot) {
-		this.parkingSpot = parkingSpot;
+	public List<ParkingSpot> getSpots() {
+		return spots;
 	}
 
 	public LocalDateTime getEntryTime() {
@@ -110,6 +110,14 @@ public class Ticket implements Serializable {
 			return false;
 		Ticket other = (Ticket) obj;
 		return Objects.equals(id, other.id);
+	}
+
+	@Override
+	public String toString() {
+		return "\nTicket: " + id + "\nLicense plate = " + vehicle.getPlate() + "\nType = " + vehicle.getType() + "\nEntry gate = " + entryGate.getNumber()
+				+ "\nExit gate = " + exitGate.getNumber() + "\nParking spot = " + spots
+				+ "\nEntry time = " + dtf.format(entryTime) + "\nExit time = " + dtf.format(exitTime)
+				+ "\nAmount paid = " + String.format("%.2f", amountPaid);
 	}
 
 }

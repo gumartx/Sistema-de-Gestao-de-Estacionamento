@@ -3,17 +3,39 @@ package model.entities;
 import java.io.Serializable;
 import java.util.Objects;
 
+import model.enums.Reserve;
+
 public class ParkingSpot implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private Integer id;
 	private Integer number;
 	private boolean status = false;
+	private Reserve reserve = Reserve.NONE;
+	private Vehicle vehicle;
 
-	public ParkingSpot(Integer id, Integer number, boolean status) {
+	public ParkingSpot(Integer id, Integer number, boolean status, Reserve reserve, Vehicle vehicle) {
 		this.id = id;
 		this.number = number;
 		this.status = status;
+		this.reserve = reserve;
+		this.vehicle = vehicle;
+	}
+
+	public Reserve getReserve() {
+		return reserve;
+	}
+
+	public void setReserve(Reserve reserve) {
+		this.reserve = reserve;
+	}
+
+	public Vehicle getVehicle() {
+		return vehicle;
+	}
+
+	public void setVehicle(Vehicle vehicle) {
+		this.vehicle = vehicle;
 	}
 
 	public Integer getId() {
@@ -55,6 +77,11 @@ public class ParkingSpot implements Serializable {
 			return false;
 		ParkingSpot other = (ParkingSpot) obj;
 		return Objects.equals(id, other.id);
+	}
+
+	@Override
+	public String toString() {
+		return number + "";
 	}
 
 }
