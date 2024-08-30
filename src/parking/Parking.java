@@ -21,17 +21,26 @@ import parking.exceptions.ParkingException;
 
 public class Parking {
 
-	public static void registerEntry(Vehicle vehicle, Gate gate, List<ParkingSpot> spot, ParkingSpotDao parkingDao) {
-		
-		if (validateEntry(vehicle, gate, spot)) {
+	public static Ticket registerEntry(Vehicle vehicle, Gate gate, ParkingSpotDao parkingDao) {
+
+		List<ParkingSpot> spot = parkingDao.findAll();
+		List<ParkingSpot> result;
+		int vehicleSize = getVehicleSpotSize(vehicle);
+		if (vehicle.getCategory().name() == "SUBSCRIBER") {
+			result = spot.stream().limit(vehicleSize).toList();
+		} else {
+			result = spot.stream().skip(200).limit(vehicleSize).toList();
+		}
+
+		if (validateEntry(vehicle, gate, result)) {
 			Ticket ticket = new Ticket();
 			ticket.setVehicle(vehicle);
 			ticket.setEntryGate(gate);
 			ticket.setEntryTime(LocalDateTime.now());
 
 			Map<Integer, Vehicle> map = new HashMap<>();
-			
-			for (ParkingSpot s : spot) {
+
+			for (ParkingSpot s : result) {
 
 				Vehicle vec = map.get(vehicle.getId());
 
@@ -39,23 +48,25 @@ public class Parking {
 					vec = vehicle;
 					map.put(vehicle.getId(), vec);
 				}
-				
+
 				s.setVehicle(vec);
-				
 				s.setStatus(true);
 				ticket.getSpots().add(s);
-				
+
 				parkingDao.update(s);
 			}
+
+			return ticket;
 
 		} else {
 			throw new GateException("Entry not allowed for this vehicle at this gate.");
 		}
 	}
 
-	public static Ticket registerExit(Ticket ticket, Gate gate) {
+	public static Ticket registerExit(Ticket ticket, Vehicle vehicle, Gate gate, List<ParkingSpot> spot,
+			ParkingSpotDao parkingDao) {
 		VehicleType type = ticket.getVehicle().getType();
-		
+
 		if (!gate.getType().equals(GateType.EXIT)) {
 			throw new ParkingException("Exit not allowed at this gate");
 		}
@@ -64,20 +75,24 @@ public class Parking {
 			throw new ParkingException("Exit not allowed for this vehicle at this gate");
 		}
 
+		for (ParkingSpot s : spot) {
+			s.setStatus(false);
+			s.setVehicle(null);
+			s.setTicket(null);
+
+			parkingDao.update(s);
+		}
+
 		ticket.setExitTime(LocalDateTime.now());
 		ticket.setExitGate(gate);
 
 		double amountPaid = calculateAmount(ticket);
 		ticket.setAmountPaid(amountPaid);
 
-		for (ParkingSpot s : ticket.getSpots()) {
-			s.setStatus(false);
-		}
-
 		return ticket;
 	}
 
-	public static int getVehicleSpotSize(Vehicle vehicle) {
+	private static int getVehicleSpotSize(Vehicle vehicle) {
 		VehicleType type = vehicle.getType();
 
 		switch (type) {
@@ -99,6 +114,7 @@ public class Parking {
 		VehicleType type = vehicle.getType();
 
 		if (!spot.isEmpty()) {
+
 			for (ParkingSpot s : spot) {
 				if (s.isStatus()) {
 					throw new ParkingException("Spot occupied");

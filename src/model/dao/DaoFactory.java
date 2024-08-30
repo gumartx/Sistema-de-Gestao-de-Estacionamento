@@ -3,6 +3,7 @@ package model.dao;
 import db.DB;
 import model.dao.impl.GateDaoJDBC;
 import model.dao.impl.ParkingSpotDaoJDBC;
+import model.dao.impl.TicketDaoJDBC;
 import model.dao.impl.VehicleDaoJDBC;
 
 public class DaoFactory {
@@ -17,6 +18,10 @@ public class DaoFactory {
 
 	public static GateDao createGateDao() {
 		return new GateDaoJDBC(DB.getConnection());
+	}
+
+	public static TicketDao createTicketDao() {
+		return new TicketDaoJDBC(DB.getConnection());
 	}
 	
 }

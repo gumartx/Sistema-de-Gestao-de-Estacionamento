@@ -13,6 +13,7 @@ public class ParkingSpot implements Serializable {
 	private boolean status = false;
 	private Reserve reserve = Reserve.NONE;
 	private Vehicle vehicle;
+	private Ticket ticket;
 
 	public ParkingSpot(Integer id, Integer number, boolean status, Reserve reserve, Vehicle vehicle) {
 		this.id = id;
@@ -20,6 +21,22 @@ public class ParkingSpot implements Serializable {
 		this.status = status;
 		this.reserve = reserve;
 		this.vehicle = vehicle;
+	}
+
+	public ParkingSpot(Integer id, Integer number, boolean status, Reserve reserve, Ticket ticket) {
+		this.id = id;
+		this.number = number;
+		this.status = status;
+		this.reserve = reserve;
+		this.ticket = ticket;
+	}
+
+	public Ticket getTicket() {
+		return ticket;
+	}
+
+	public void setTicket(Ticket ticket) {
+		this.ticket = ticket;
 	}
 
 	public Reserve getReserve() {

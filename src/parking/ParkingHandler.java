@@ -5,38 +5,50 @@ import java.util.Scanner;
 
 import model.dao.GateDao;
 import model.dao.ParkingSpotDao;
+import model.dao.TicketDao;
 import model.dao.VehicleDao;
 import model.entities.Gate;
 import model.entities.ParkingSpot;
+import model.entities.Ticket;
 import model.entities.Vehicle;
 
 public class ParkingHandler {
 
-	public static void entryParking(VehicleDao vehicleDao, GateDao gateDao, ParkingSpotDao parkingDao, Scanner sc) {
+	public static void entryParking(VehicleDao vehicleDao, GateDao gateDao, TicketDao ticketDao,
+			ParkingSpotDao parkingDao, Scanner sc) {
 
-		System.out.println("Do you want to enter a vehicle in the parking lot (s/n)? ");
-		char n = sc.next().charAt(0);
-		
-		while (n == 's') {
-			List<ParkingSpot> list = parkingDao.findAll();
+		System.out.println("\n===Enter the vehicle in the parking lot===");
 
-			System.out.println("\n===Enter the vehicle in the parking lot===");
+		System.out.print("\nEnter with license plate: ");
+		String plate = sc.next();
+		Vehicle vehicle = vehicleDao.findByPlate(plate);
 
-			System.out.print("\nEnter with license plate: ");
-			String plate = sc.next();
-			Vehicle vehicle = vehicleDao.findByPlate(plate);
+		System.out.print("Enter the id of the entry gate: ");
+		Gate gate = gateDao.findById(sc.nextInt());
 
-			System.out.print("Enter the id of the entry gate: ");
-			Gate gate = gateDao.findById(sc.nextInt());
+		Ticket ticket = Parking.registerEntry(vehicle, gate, parkingDao);
 
-			int vehicleSize = Parking.getVehicleSpotSize(vehicle);
-			List<ParkingSpot> result = list.stream().limit(vehicleSize).toList();
+		ticketDao.insert(ticket);
 
-			Parking.registerEntry(vehicle, gate, result, parkingDao);
+	}
 
-			System.out.print("Enter with mote vehicles (s/n)? ");
-			n = sc.next().charAt(0);
-		}
+	public static void exitParking(VehicleDao vehicleDao, TicketDao ticketDao, ParkingSpotDao parkingDao,
+			GateDao gateDao, Scanner sc) {
+
+		System.out.print("\nEnter the license plate to exit the parking lot: ");
+		String plate = sc.next();
+
+		Vehicle vehicle = vehicleDao.findByPlate(plate);
+		Ticket ticket = ticketDao.findByVehicle(vehicle).stream().findFirst().get();
+		List<ParkingSpot> list = parkingDao.findByVehicle(vehicle);
+
+		System.out.print("Enter the id of the exit gate: ");
+		Gate gate = gateDao.findById(sc.nextInt());
+
+		ticket = Parking.registerExit(ticket, vehicle, gate, list, parkingDao);
+
+		ticketDao.update(ticket);
+
 	}
 
 }
