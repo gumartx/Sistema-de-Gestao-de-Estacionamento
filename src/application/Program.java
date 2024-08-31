@@ -16,17 +16,13 @@ public class Program {
 
 		Scanner sc = new Scanner(System.in);
 
-		VehicleDao vehicleDao = DaoFactory.createVehicleDao();
-		GateDao gateDao = DaoFactory.createGateDao();
-		ParkingSpotDao parkingDao = DaoFactory.createParkingSpotDao();
-		TicketDao ticketDao = DaoFactory.createTicketDao();
-
 		int n = 1;
 		while (n != 0) {
 			System.out.println("\n========================");
 			System.out.println("Register vehicle : 1");
 			System.out.println("Entry a vehicle  : 2");
 			System.out.println("Exit a vehicle   : 3");
+			System.out.println("Verify free spots: 4");
 			System.out.println("Exit system      : 0");
 			System.out.println("========================");
 			System.out.print("\nSelect a number: ");
@@ -34,13 +30,16 @@ public class Program {
 			switch (n) {
 
 			case 1:
-				VehicleRegistration.register(vehicleDao, sc);
+				VehicleRegistration.register(sc);
 				break;
 			case 2:
-				ParkingHandler.entryParking(vehicleDao, gateDao, ticketDao, parkingDao, sc);
+				ParkingHandler.entryParking(sc);
 				break;
 			case 3:
-				ParkingHandler.exitParking(vehicleDao, ticketDao, parkingDao, gateDao, sc);
+				ParkingHandler.exitParking(sc);
+				break;
+			case 4:
+				ParkingHandler.verifySpots();
 				break;
 			default:
 				n = 0;

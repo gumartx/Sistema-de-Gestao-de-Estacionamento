@@ -8,35 +8,22 @@ import model.enums.Reserve;
 public class ParkingSpot implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private Integer id;
 	private Integer number;
 	private boolean status = false;
 	private Reserve reserve = Reserve.NONE;
 	private Vehicle vehicle;
-	private Ticket ticket;
 
-	public ParkingSpot(Integer id, Integer number, boolean status, Reserve reserve, Vehicle vehicle) {
-		this.id = id;
+	public ParkingSpot(Integer number, boolean status, Reserve reserve, Vehicle vehicle) {
 		this.number = number;
 		this.status = status;
 		this.reserve = reserve;
 		this.vehicle = vehicle;
 	}
 
-	public ParkingSpot(Integer id, Integer number, boolean status, Reserve reserve, Ticket ticket) {
-		this.id = id;
+	public ParkingSpot(Integer number, boolean status, Reserve reserve) {
 		this.number = number;
 		this.status = status;
 		this.reserve = reserve;
-		this.ticket = ticket;
-	}
-
-	public Ticket getTicket() {
-		return ticket;
-	}
-
-	public void setTicket(Ticket ticket) {
-		this.ticket = ticket;
 	}
 
 	public Reserve getReserve() {
@@ -53,14 +40,6 @@ public class ParkingSpot implements Serializable {
 
 	public void setVehicle(Vehicle vehicle) {
 		this.vehicle = vehicle;
-	}
-
-	public Integer getId() {
-		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
 	}
 
 	public Integer getNumber() {
@@ -81,7 +60,7 @@ public class ParkingSpot implements Serializable {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id);
+		return Objects.hash(number);
 	}
 
 	@Override
@@ -93,7 +72,7 @@ public class ParkingSpot implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		ParkingSpot other = (ParkingSpot) obj;
-		return Objects.equals(id, other.id);
+		return Objects.equals(number, other.number);
 	}
 
 	@Override

@@ -9,24 +9,14 @@ import model.enums.VehicleType;
 public class Vehicle implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private Integer id;
 	private String plate;
 	private Category category;
 	private VehicleType type;
 
-	public Vehicle(Integer id, String plate, Category category, VehicleType type) {
-		this.id = id;
+	public Vehicle(String plate, Category category, VehicleType type) {
 		this.plate = plate;
 		this.category = category;
 		this.type = type;
-	}
-
-	public Integer getId() {
-		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
 	}
 
 	public String getPlate() {
@@ -55,7 +45,7 @@ public class Vehicle implements Serializable {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id);
+		return Objects.hash(plate);
 	}
 
 	@Override
@@ -67,7 +57,7 @@ public class Vehicle implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		Vehicle other = (Vehicle) obj;
-		return Objects.equals(id, other.id);
+		return Objects.equals(plate, other.plate);
 	}
 
 }

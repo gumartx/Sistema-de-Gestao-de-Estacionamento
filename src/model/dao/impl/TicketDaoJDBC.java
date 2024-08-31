@@ -16,6 +16,7 @@ import db.DB;
 import db.DbException;
 import model.dao.DaoFactory;
 import model.dao.GateDao;
+import model.dao.ParkingSpotDao;
 import model.dao.TicketDao;
 import model.dao.VehicleDao;
 import model.entities.Gate;
@@ -56,11 +57,14 @@ public class TicketDaoJDBC implements TicketDao {
 	public void insert(Ticket obj) {
 		PreparedStatement st = null;
 		try {
-			st = conn.prepareStatement("INSERT INTO ticket (vehicle_id, entry_gate_id, entry_time) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+			st = conn.prepareStatement(
+					"INSERT INTO ticket (vehicle_plate, parking_spot, entry_gate_id, entry_time) VALUES (?, ?, ?, ?)",
+					Statement.RETURN_GENERATED_KEYS);
 
-			st.setInt(1, obj.getVehicle().getId());
-			st.setInt(2, obj.getEntryGate().getId());
-			st.setTimestamp(3, Timestamp.valueOf(obj.getEntryTime()));
+			st.setString(1, obj.getVehicle().getPlate());
+			st.setInt(2, obj.getSpots().stream().map(x -> x.getNumber()).findFirst().get());
+			st.setInt(3, obj.getEntryGate().getId());
+			st.setTimestamp(4, Timestamp.valueOf(obj.getEntryTime()));
 
 			int rowsAffected = st.executeUpdate();
 
@@ -81,16 +85,15 @@ public class TicketDaoJDBC implements TicketDao {
 			DB.closeStatement(st);
 		}
 	}
-	
+
 	@Override
 	public List<Ticket> findByVehicle(Vehicle vehicle) {
 		PreparedStatement st = null;
 		ResultSet rs = null;
 		try {
-			st = conn.prepareStatement(
-					"select ticket.* from ticket where vehicle_id = ?");
+			st = conn.prepareStatement("select ticket.* from ticket where vehicle_plate = ?");
 
-			st.setInt(1, vehicle.getId());
+			st.setString(1, vehicle.getPlate());
 			rs = st.executeQuery();
 
 			Map<Integer, Vehicle> map = new HashMap<>();
@@ -158,20 +161,22 @@ public class TicketDaoJDBC implements TicketDao {
 
 	private Ticket instantiateTicket(ResultSet rs) throws SQLException {
 		VehicleDao vehicleDao = DaoFactory.createVehicleDao();
+		ParkingSpotDao parkingDao = DaoFactory.createParkingSpotDao();
 		GateDao gateDao = DaoFactory.createGateDao();
-		Vehicle vehicle = vehicleDao.findById(rs.getInt("vehicle_id"));
+		Vehicle vehicle = vehicleDao.findByPlate(rs.getString("vehicle_plate"));
 		Gate entryGate = gateDao.findById(rs.getInt("entry_gate_id"));
 		Gate exitGate = gateDao.findById(rs.getInt("exit_gate_id"));
 		LocalDateTime entryTime = rs.getTimestamp("entry_time").toLocalDateTime();
 		LocalDateTime exitTime = rs.getTimestamp("exit_time").toLocalDateTime();
 		Double amount = rs.getDouble("amount_paid");
 		Ticket ticket = new Ticket(rs.getInt("id"), vehicle, exitGate, entryGate, entryTime, exitTime, amount);
+		ticket.getSpots().add(parkingDao.findByNumber(rs.getInt("parking_spot")));
 		return ticket;
 	}
-	
+
 	private Vehicle instantiateVehicle(ResultSet rs) throws SQLException {
 		VehicleDao vehicleDao = DaoFactory.createVehicleDao();
-		Vehicle vehicle = vehicleDao.findById(rs.getInt("vehicle_id"));
+		Vehicle vehicle = vehicleDao.findByPlate(rs.getString("vehicle_plate"));
 		return vehicle;
 	}
 

@@ -59,18 +59,15 @@ public class ParkingSpotDaoJDBC implements ParkingSpotDao {
 		PreparedStatement st = null;
 		try {
 			st = conn.prepareStatement(
-					"UPDATE parking_spot SET status = ?, vehicle_id = ?, license_plate = ? WHERE Id = ?");
+					"UPDATE parking_spot SET status = ?, vehicle_plate = ? WHERE spot_number = ?");
 
 			st.setBoolean(1, obj.isStatus());
 			try {
-				st.setInt(2, obj.getVehicle().getId());
-				st.setString(3, obj.getVehicle().getPlate());
+				st.setString(2, obj.getVehicle().getPlate());
 			} catch (NullPointerException e) {
 				st.setString(2, null);
-				st.setString(3, null);
 			}
-			st.setInt(4, obj.getId());
-
+			st.setInt(3, obj.getNumber());
 			st.executeUpdate();
 
 		} catch (SQLException e) {
@@ -91,16 +88,16 @@ public class ParkingSpotDaoJDBC implements ParkingSpotDao {
 
 			rs = st.executeQuery();
 
-			Map<Integer, Vehicle> map = new HashMap<>();
+			Map<String, Vehicle> map = new HashMap<>();
 			List<ParkingSpot> list = new ArrayList<>();
 
 			while (rs.next()) {
 
-				Vehicle dep = map.get(rs.getInt("vehicle_id"));
+				Vehicle dep = map.get(rs.getString("vehicle_plate"));
 
 				if (dep == null) {
 					dep = instantiateVehicle(rs);
-					map.put(rs.getInt("vehicle_id"), dep);
+					map.put(rs.getString("vehicle_plate"), dep);
 				}
 
 				ParkingSpot obj = instantiateSpot(rs, dep);
@@ -123,21 +120,21 @@ public class ParkingSpotDaoJDBC implements ParkingSpotDao {
 		PreparedStatement st = null;
 		ResultSet rs = null;
 		try {
-			st = conn.prepareStatement("select parking_spot.* from parking_spot where vehicle_id = ?");
+			st = conn.prepareStatement("select parking_spot.* from parking_spot where vehicle_plate = ?");
 
-			st.setInt(1, obj.getId());
+			st.setString(1, obj.getPlate());
 			rs = st.executeQuery();
 
-			Map<Integer, Vehicle> map = new HashMap<>();
+			Map<String, Vehicle> map = new HashMap<>();
 			List<ParkingSpot> list = new ArrayList<>();
 
 			while (rs.next()) {
 
-				Vehicle vec = map.get(rs.getInt("vehicle_id"));
+				Vehicle vec = map.get(rs.getString("vehicle_plate"));
 
 				if (vec == null) {
 					vec = instantiateVehicle(rs);
-					map.put(rs.getInt("vehicle_id"), vec);
+					map.put(rs.getString("vehicle_plate"), vec);
 				}
 
 				ParkingSpot ps = instantiateSpot(rs, vec);
@@ -157,12 +154,12 @@ public class ParkingSpotDaoJDBC implements ParkingSpotDao {
 
 	private Vehicle instantiateVehicle(ResultSet rs) throws SQLException {
 		VehicleDao vehicleDao = DaoFactory.createVehicleDao();
-		Vehicle vehicle = vehicleDao.findById(rs.getInt("vehicle_id"));
+		Vehicle vehicle = vehicleDao.findByPlate(rs.getString("vehicle_plate"));
 		return vehicle;
 	}
 
 	private ParkingSpot instantiateSpot(ResultSet rs, Vehicle vehicle) throws SQLException {
-		ParkingSpot ps = new ParkingSpot(rs.getInt("id"), rs.getInt("spot_number"), rs.getBoolean("status"),
+		ParkingSpot ps = new ParkingSpot(rs.getInt("spot_number"), rs.getBoolean("status"),
 				Reserve.valueOf(rs.getString("reserve").toUpperCase()), vehicle);
 		return ps;
 	}

@@ -6,13 +6,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import model.dao.DaoFactory;
 import model.dao.ParkingSpotDao;
+import model.dao.TicketDao;
 import model.entities.Gate;
 import model.entities.ParkingSpot;
 import model.entities.Ticket;
 import model.entities.Vehicle;
 import model.enums.Category;
 import model.enums.GateType;
+import model.enums.Reserve;
 import model.enums.VehicleType;
 import model.exceptions.GateException;
 import model.exceptions.TicketException;
@@ -21,16 +24,48 @@ import parking.exceptions.ParkingException;
 
 public class Parking {
 
-	public static Ticket registerEntry(Vehicle vehicle, Gate gate, ParkingSpotDao parkingDao) {
+	private static ParkingSpotDao parkingDao = DaoFactory.createParkingSpotDao();
+	private static TicketDao ticketDao = DaoFactory.createTicketDao();
+
+	public static void registerEntry(Vehicle vehicle, Gate gate) {
 
 		List<ParkingSpot> spot = parkingDao.findAll();
-		List<ParkingSpot> result;
-		int vehicleSize = getVehicleSpotSize(vehicle);
-		if (vehicle.getCategory().name() == "SUBSCRIBER") {
-			result = spot.stream().limit(vehicleSize).toList();
+		List<ParkingSpot> result = getFreeSpots(vehicle, spot);
+
+		if (vehicle.getCategory().name() == "CASUAL") {
+			Ticket ticket = registerTicket(vehicle, gate);
+			ticketDao.insert(ticket);
 		} else {
-			result = spot.stream().skip(200).limit(vehicleSize).toList();
+			if (validateEntry(vehicle, gate, result)) {
+
+				Map<String, Vehicle> map = new HashMap<>();
+
+				for (ParkingSpot s : result) {
+
+					Vehicle vec = map.get(vehicle.getPlate());
+
+					if (vec == null) {
+						vec = vehicle;
+						map.put(vehicle.getPlate(), vec);
+					}
+					s.setVehicle(vec);
+					s.setStatus(true);
+
+					parkingDao.update(s);
+
+				}
+			} else {
+				throw new GateException("Entry not allowed for this vehicle at this gate.");
+			}
+
 		}
+
+	}
+
+	private static Ticket registerTicket(Vehicle vehicle, Gate gate) {
+
+		List<ParkingSpot> spot = parkingDao.findAll();
+		List<ParkingSpot> result = getFreeSpots(vehicle, spot);
 
 		if (validateEntry(vehicle, gate, result)) {
 			Ticket ticket = new Ticket();
@@ -38,29 +73,44 @@ public class Parking {
 			ticket.setEntryGate(gate);
 			ticket.setEntryTime(LocalDateTime.now());
 
-			Map<Integer, Vehicle> map = new HashMap<>();
+			Map<String, Vehicle> map = new HashMap<>();
 
-			for (ParkingSpot s : result) {
+			if (vehicle.getCategory().name() != "PUBLIC_SERVICE") {
+				for (ParkingSpot s : result) {
 
-				Vehicle vec = map.get(vehicle.getId());
+					Vehicle vec = map.get(vehicle.getPlate());
 
-				if (vec == null) {
-					vec = vehicle;
-					map.put(vehicle.getId(), vec);
+					if (vec == null) {
+						vec = vehicle;
+						map.put(vehicle.getPlate(), vec);
+					}
+					s.setVehicle(vec);
+					s.setStatus(true);
+					ticket.getSpots().add(s);
+
+					parkingDao.update(s);
 				}
-
-				s.setVehicle(vec);
-				s.setStatus(true);
-				ticket.getSpots().add(s);
-
-				parkingDao.update(s);
 			}
-
 			return ticket;
 
 		} else {
 			throw new GateException("Entry not allowed for this vehicle at this gate.");
 		}
+
+	}
+
+	private static List<ParkingSpot> getFreeSpots(Vehicle vehicle, List<ParkingSpot> spot) {
+		List<ParkingSpot> result;
+
+		int vehicleSize = getVehicleSpotSize(vehicle);
+		if (vehicle.getCategory().name() == "SUBSCRIBER") {
+			result = spot.stream().limit(vehicleSize).toList();
+
+		} else {
+			result = spot.stream().skip(200).limit(vehicleSize).toList();
+
+		}
+		return result;
 	}
 
 	public static Ticket registerExit(Ticket ticket, Vehicle vehicle, Gate gate, List<ParkingSpot> spot,
@@ -75,17 +125,17 @@ public class Parking {
 			throw new ParkingException("Exit not allowed for this vehicle at this gate");
 		}
 
-		for (ParkingSpot s : spot) {
-			s.setStatus(false);
-			s.setVehicle(null);
-			s.setTicket(null);
+		if (vehicle.getCategory().name() != "PUBLIC_SERVICE") {
+			for (ParkingSpot s : spot) {
+				s.setStatus(false);
+				s.setVehicle(null);
 
-			parkingDao.update(s);
+				parkingDao.update(s);
+			}
+
+			ticket.setExitTime(LocalDateTime.now());
+			ticket.setExitGate(gate);
 		}
-
-		ticket.setExitTime(LocalDateTime.now());
-		ticket.setExitGate(gate);
-
 		double amountPaid = calculateAmount(ticket);
 		ticket.setAmountPaid(amountPaid);
 
@@ -101,7 +151,7 @@ public class Parking {
 		case CAR:
 			return 2;
 		case DELIVERY_TRUCK:
-			return 3;
+			return 4;
 		case PUBLIC_SERVICE:
 			return 0;
 		default:
@@ -113,18 +163,23 @@ public class Parking {
 		Category vehicleCategory = vehicle.getCategory();
 		VehicleType type = vehicle.getType();
 
-		if (!spot.isEmpty()) {
+		if (!parkingDao.findByVehicle(vehicle).isEmpty()) {
+			throw new ParkingException("Vehicle is already in the parking lot");
+		}
 
-			for (ParkingSpot s : spot) {
-				if (s.isStatus()) {
-					throw new ParkingException("Spot occupied");
+		if (vehicleCategory != Category.PUBLIC_SERVICE) {
+			if (!spot.isEmpty()) {
+				for (ParkingSpot s : spot) {
+					if (s.isStatus()) {
+						throw new ParkingException("Spot occupied");
+					}
+					if (s.getReserve().name() == "SUBSCRIBER" && vehicle.getCategory().name() != "SUBSCRIBER") {
+						throw new ParkingException("Spot reserved for Subscribers");
+					}
 				}
-				if (s.getReserve().name() == "SUBSCRIBER" && vehicle.getCategory().name() != "SUBSCRIBER") {
-					throw new ParkingException("Spot reserved for Subscribers");
-				}
+			} else {
+				throw new ParkingException("Not enough spots");
 			}
-		} else {
-			throw new ParkingException("Not enough spots");
 		}
 
 		if (!gate.getType().equals(GateType.ENTRY)) {
