@@ -96,7 +96,7 @@ public class ParkingHandler {
 		}
 
 		Parking.registerExit(vehicle, gate, list);
-
+		vehicles.remove(vehicle);
 	}
 
 }

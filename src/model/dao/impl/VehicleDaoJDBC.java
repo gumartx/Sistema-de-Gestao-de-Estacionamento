@@ -19,10 +19,10 @@ public class VehicleDaoJDBC implements VehicleDao {
 	public VehicleDaoJDBC(Connection conn) {
 		this.conn = conn;
 	}
-	
+
 	@Override
 	public void insert(Vehicle obj) {
-		
+
 		PreparedStatement st = null;
 		try {
 			st = conn.prepareStatement("INSERT INTO vehicle (license_plate, category, type) VALUES (?, ?, ?)");
@@ -68,10 +68,10 @@ public class VehicleDaoJDBC implements VehicleDao {
 	}
 
 	private Vehicle instantiateVehicle(ResultSet rs) throws SQLException {
-		Vehicle vehicle = new Vehicle(rs.getString("license_plate"), Category.valueOf(rs.getString("category").toUpperCase()), VehicleType.valueOf(rs.getString("type").toUpperCase()));
+		Vehicle vehicle = new Vehicle(rs.getString("license_plate"),
+				Category.valueOf(rs.getString("category").toUpperCase()),
+				VehicleType.valueOf(rs.getString("type").toUpperCase()));
 		return vehicle;
 	}
 
-	
-	
 }

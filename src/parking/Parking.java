@@ -122,7 +122,7 @@ public class Parking {
 			throw new ParkingException("Exit not allowed for this vehicle at this gate");
 		}
 
-		if (vehicle.getCategory() == Category.CASUAL){
+		if (vehicle.getCategory() == Category.CASUAL) {
 			Ticket ticket = ticketDao.findByVehicle(vehicle).stream().findFirst().get();
 			ticket.setExitTime(LocalDateTime.now());
 			ticket.setExitGate(gate);
@@ -136,7 +136,7 @@ public class Parking {
 
 				parkingDao.update(s);
 			}
-			
+
 			ticketDao.update(ticket);
 		} else {
 			if (vehicle.getCategory() != Category.PUBLIC_SERVICE) {
@@ -203,7 +203,7 @@ public class Parking {
 		if (type == VehicleType.TRUCK) {
 			return gate.getNumber() == 1;
 		}
-		
+
 		switch (vehicleCategory) {
 		case SUBSCRIBER:
 			return true;
@@ -226,9 +226,6 @@ public class Parking {
 		double amount = 0.0;
 
 		switch (vehicleCategory) {
-		case SUBSCRIBER:
-			amount = 250.00;
-			break;
 
 		case DELIVERY_TRUCK:
 		case CASUAL:
@@ -248,15 +245,11 @@ public class Parking {
 			}
 			break;
 
-		case PUBLIC_SERVICE:
-			amount = 0.00;
-			break;
-
 		default:
 			throw new VehicleException("Unknown vehicle category.");
 		}
 
 		return amount;
 	}
-
+	
 }

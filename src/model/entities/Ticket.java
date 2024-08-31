@@ -114,10 +114,10 @@ public class Ticket implements Serializable {
 
 	@Override
 	public String toString() {
-		return "\nTicket: " + id + "\nLicense plate = " + vehicle.getPlate() + "\nType = " + vehicle.getType() + "\nEntry gate = " + entryGate.getNumber()
-				+ "\nExit gate = " + exitGate.getNumber() + "\nParking spot = " + spots
-				+ "\nEntry time = " + dtf.format(entryTime) + "\nExit time = " + dtf.format(exitTime)
-				+ "\nAmount paid = " + String.format("%.2f", amountPaid);
+		return "\nTicket: " + id + "\nLicense plate = " + vehicle.getPlate() + "\nType = " + vehicle.getType()
+				+ "\nEntry gate = " + entryGate.getNumber() + "\nExit gate = " + exitGate.getNumber()
+				+ "\nParking spot = " + spots + "\nEntry time = " + dtf.format(entryTime) + "\nExit time = "
+				+ dtf.format(exitTime) + "\nAmount paid = " + String.format("%.2f", amountPaid);
 	}
 
 }

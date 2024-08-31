@@ -19,11 +19,11 @@ public class Program {
 		int n = 1;
 		while (n != 0) {
 			System.out.println("\n========================");
-			System.out.println("Register vehicle : 1");
-			System.out.println("Entry a vehicle  : 2");
-			System.out.println("Exit a vehicle   : 3");
-			System.out.println("Verify free spots: 4");
-			System.out.println("Exit system      : 0");
+			System.out.println("Register vehicle        :  1");
+			System.out.println("Entry a vehicle         :  2");
+			System.out.println("Exit a vehicle          :  3");
+			System.out.println("Verify free spots       :  4");
+			System.out.println("Exit system             :  0");
 			System.out.println("========================");
 			System.out.print("\nSelect a number: ");
 			n = sc.nextInt();
@@ -41,7 +41,6 @@ public class Program {
 			case 4:
 				ParkingHandler.verifySpots();
 				break;
-			
 			default:
 				n = 0;
 			}
