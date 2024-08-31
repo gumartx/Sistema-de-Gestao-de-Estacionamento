@@ -96,16 +96,16 @@ public class TicketDaoJDBC implements TicketDao {
 			st.setString(1, vehicle.getPlate());
 			rs = st.executeQuery();
 
-			Map<Integer, Vehicle> map = new HashMap<>();
+			Map<String, Vehicle> map = new HashMap<>();
 			List<Ticket> list = new ArrayList<>();
 
 			while (rs.next()) {
 
-				Vehicle vec = map.get(rs.getInt("vehicle_id"));
+				Vehicle vec = map.get(rs.getString("vehicle_plate"));
 
 				if (vec == null) {
 					vec = instantiateVehicle(rs);
-					map.put(rs.getInt("vehicle_id"), vec);
+					map.put(rs.getString("vehicle_plate"), vec);
 				}
 
 				Ticket obj = instantiateTicket(rs, vec);

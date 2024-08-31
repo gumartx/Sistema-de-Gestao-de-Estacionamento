@@ -15,7 +15,6 @@ import model.entities.Ticket;
 import model.entities.Vehicle;
 import model.enums.Category;
 import model.enums.GateType;
-import model.enums.Reserve;
 import model.enums.VehicleType;
 import model.exceptions.GateException;
 import model.exceptions.TicketException;
@@ -27,14 +26,18 @@ public class Parking {
 	private static ParkingSpotDao parkingDao = DaoFactory.createParkingSpotDao();
 	private static TicketDao ticketDao = DaoFactory.createTicketDao();
 
-	public static void registerEntry(Vehicle vehicle, Gate gate) {
+	public static Vehicle registerEntry(Vehicle vehicle, Gate gate) {
 
 		List<ParkingSpot> spot = parkingDao.findAll();
 		List<ParkingSpot> result = getFreeSpots(vehicle, spot);
 
 		if (vehicle.getCategory().name() == "CASUAL") {
-			Ticket ticket = registerTicket(vehicle, gate);
-			ticketDao.insert(ticket);
+			if (validateEntry(vehicle, gate, result)) {
+				Ticket ticket = registerTicket(vehicle, gate);
+				ticketDao.insert(ticket);
+			} else {
+				throw new GateException("Entry not allowed for this vehicle at this gate.");
+			}
 		} else {
 			if (validateEntry(vehicle, gate, result)) {
 
@@ -60,6 +63,7 @@ public class Parking {
 
 		}
 
+		return vehicle;
 	}
 
 	private static Ticket registerTicket(Vehicle vehicle, Gate gate) {
@@ -67,36 +71,30 @@ public class Parking {
 		List<ParkingSpot> spot = parkingDao.findAll();
 		List<ParkingSpot> result = getFreeSpots(vehicle, spot);
 
-		if (validateEntry(vehicle, gate, result)) {
-			Ticket ticket = new Ticket();
-			ticket.setVehicle(vehicle);
-			ticket.setEntryGate(gate);
-			ticket.setEntryTime(LocalDateTime.now());
+		Ticket ticket = new Ticket();
+		ticket.setVehicle(vehicle);
+		ticket.setEntryGate(gate);
+		ticket.setEntryTime(LocalDateTime.now());
 
-			Map<String, Vehicle> map = new HashMap<>();
+		Map<String, Vehicle> map = new HashMap<>();
 
-			if (vehicle.getCategory().name() != "PUBLIC_SERVICE") {
-				for (ParkingSpot s : result) {
+		if (vehicle.getCategory().name() != "PUBLIC_SERVICE") {
+			for (ParkingSpot s : result) {
 
-					Vehicle vec = map.get(vehicle.getPlate());
+				Vehicle vec = map.get(vehicle.getPlate());
 
-					if (vec == null) {
-						vec = vehicle;
-						map.put(vehicle.getPlate(), vec);
-					}
-					s.setVehicle(vec);
-					s.setStatus(true);
-					ticket.getSpots().add(s);
-
-					parkingDao.update(s);
+				if (vec == null) {
+					vec = vehicle;
+					map.put(vehicle.getPlate(), vec);
 				}
+				s.setVehicle(vec);
+				s.setStatus(true);
+				ticket.getSpots().add(s);
+
+				parkingDao.update(s);
 			}
-			return ticket;
-
-		} else {
-			throw new GateException("Entry not allowed for this vehicle at this gate.");
 		}
-
+		return ticket;
 	}
 
 	private static List<ParkingSpot> getFreeSpots(Vehicle vehicle, List<ParkingSpot> spot) {
@@ -113,9 +111,8 @@ public class Parking {
 		return result;
 	}
 
-	public static Ticket registerExit(Ticket ticket, Vehicle vehicle, Gate gate, List<ParkingSpot> spot,
-			ParkingSpotDao parkingDao) {
-		VehicleType type = ticket.getVehicle().getType();
+	public static void registerExit(Vehicle vehicle, Gate gate, List<ParkingSpot> spot) {
+		VehicleType type = vehicle.getType();
 
 		if (!gate.getType().equals(GateType.EXIT)) {
 			throw new ParkingException("Exit not allowed at this gate");
@@ -125,21 +122,34 @@ public class Parking {
 			throw new ParkingException("Exit not allowed for this vehicle at this gate");
 		}
 
-		if (vehicle.getCategory().name() != "PUBLIC_SERVICE") {
+		if (vehicle.getCategory() == Category.CASUAL){
+			Ticket ticket = ticketDao.findByVehicle(vehicle).stream().findFirst().get();
+			ticket.setExitTime(LocalDateTime.now());
+			ticket.setExitGate(gate);
+
+			double amountPaid = calculateAmount(ticket, vehicle);
+			ticket.setAmountPaid(amountPaid);
+
 			for (ParkingSpot s : spot) {
 				s.setStatus(false);
 				s.setVehicle(null);
 
 				parkingDao.update(s);
 			}
+			
+			ticketDao.update(ticket);
+		} else {
+			if (vehicle.getCategory() != Category.PUBLIC_SERVICE) {
+				for (ParkingSpot s : spot) {
+					s.setStatus(false);
+					s.setVehicle(null);
 
-			ticket.setExitTime(LocalDateTime.now());
-			ticket.setExitGate(gate);
+					parkingDao.update(s);
+				}
+			}
+
 		}
-		double amountPaid = calculateAmount(ticket);
-		ticket.setAmountPaid(amountPaid);
 
-		return ticket;
 	}
 
 	private static int getVehicleSpotSize(Vehicle vehicle) {
@@ -150,7 +160,7 @@ public class Parking {
 			return 1;
 		case CAR:
 			return 2;
-		case DELIVERY_TRUCK:
+		case TRUCK:
 			return 4;
 		case PUBLIC_SERVICE:
 			return 0;
@@ -190,6 +200,10 @@ public class Parking {
 			return gate.getNumber() == 5;
 		}
 
+		if (type == VehicleType.TRUCK) {
+			return gate.getNumber() == 1;
+		}
+		
 		switch (vehicleCategory) {
 		case SUBSCRIBER:
 			return true;
@@ -207,8 +221,8 @@ public class Parking {
 		return false;
 	}
 
-	private static double calculateAmount(Ticket ticket) {
-		Category vehicleCategory = ticket.getVehicle().getCategory();
+	private static double calculateAmount(Ticket ticket, Vehicle vehicle) {
+		Category vehicleCategory = vehicle.getCategory();
 		double amount = 0.0;
 
 		switch (vehicleCategory) {

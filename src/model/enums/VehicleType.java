@@ -3,7 +3,7 @@ package model.enums;
 public enum VehicleType {
 
 	CAR,
-	DELIVERY_TRUCK,
+	TRUCK,
 	MOTORCYCLE,
 	PUBLIC_SERVICE;
 }

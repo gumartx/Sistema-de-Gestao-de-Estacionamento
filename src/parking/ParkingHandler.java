@@ -1,9 +1,10 @@
 package parking;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
-import db.DbException;
 import model.dao.DaoFactory;
 import model.dao.GateDao;
 import model.dao.ParkingSpotDao;
@@ -30,8 +31,9 @@ public class ParkingHandler {
 		System.out.println("Free spots: " + noneSpots);
 	}
 
-	public static void entryParking(Scanner sc) {
-
+	public static List<Vehicle> entryParking(Scanner sc) {
+		List<Vehicle> vehicles = new ArrayList<>();
+		
 		System.out.println("\n===Entering with a vehicle in the parking lot===");
 
 		System.out.print("\nEnter with license plate: ");
@@ -49,12 +51,8 @@ public class ParkingHandler {
 			if (category.name() == "PUBLIC_SERVICE") {
 				type = VehicleType.PUBLIC_SERVICE;
 			} else {
-				System.out.print("Enter the vehicle type (Car, Motorcycle): ");
+				System.out.print("Enter the vehicle type (Car, Motorcycle, Truck): ");
 				type = VehicleType.valueOf(sc.next().toUpperCase());
-			}
-
-			if (type.name() == "DELIVERY_TRUCK") {
-				throw new VehicleException("This vehicle need a previous register to entry");
 			}
 
 			vehicle = new Vehicle(plate, category, type);
@@ -70,27 +68,34 @@ public class ParkingHandler {
 			gate = gateDao.findById(1);
 		}
 
-		Parking.registerEntry(vehicle, gate);
+		vehicles.add(Parking.registerEntry(vehicle, gate));
 
+		return vehicles;
 	}
 
-	public static void exitParking(Scanner sc) {
-
+	public static void exitParking(Set<Vehicle> vehicles, Scanner sc) {
+		
 		System.out.println("\n===Exiting a vehicle in the parking lot===");
 
 		System.out.print("\nEnter the license plate to exit the parking lot: ");
 		String plate = sc.next();
-
 		Vehicle vehicle = vehicleDao.findByPlate(plate);
-		Ticket ticket = ticketDao.findByVehicle(vehicle).stream().findFirst().get();
+		if (vehicle == null) {
+			vehicle = vehicles.stream().filter(x -> x.getPlate().equals(plate)).findFirst().get();
+		}
 		List<ParkingSpot> list = parkingDao.findByVehicle(vehicle);
+		Gate gate;
+		if (vehicle.getCategory().name() != "SUBSCRIBER" && vehicle.getCategory().name() != "PUBLIC_SERVICE"
+				&& vehicle.getCategory().name() != "DELIVERY_TRUCK") {
+			System.out.print("Enter the id of the exit gate: ");
+			gate = gateDao.findById(sc.nextInt());
+		} else if (vehicle.getType().name() == "MOTORCYCLE") {
+			gate = gateDao.findById(10);
+		} else {
+			gate = gateDao.findById(6);
+		}
 
-		System.out.print("Enter the id of the exit gate: ");
-		Gate gate = gateDao.findById(sc.nextInt());
-
-		ticket = Parking.registerExit(ticket, vehicle, gate, list, parkingDao);
-
-		ticketDao.update(ticket);
+		Parking.registerExit(vehicle, gate, list);
 
 	}
 

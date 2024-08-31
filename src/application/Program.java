@@ -1,12 +1,11 @@
 package application;
 
+import java.util.HashSet;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import model.dao.DaoFactory;
-import model.dao.GateDao;
-import model.dao.ParkingSpotDao;
-import model.dao.TicketDao;
-import model.dao.VehicleDao;
+import model.entities.Vehicle;
 import parking.ParkingHandler;
 import parking.VehicleRegistration;
 
@@ -15,7 +14,8 @@ public class Program {
 	public static void main(String[] args) {
 
 		Scanner sc = new Scanner(System.in);
-
+		Set<Vehicle> vehicles = new HashSet<>();
+		
 		int n = 1;
 		while (n != 0) {
 			System.out.println("\n========================");
@@ -33,14 +33,15 @@ public class Program {
 				VehicleRegistration.register(sc);
 				break;
 			case 2:
-				ParkingHandler.entryParking(sc);
+				vehicles = ParkingHandler.entryParking(sc).stream().collect(Collectors.toSet());
 				break;
 			case 3:
-				ParkingHandler.exitParking(sc);
+				ParkingHandler.exitParking(vehicles, sc);
 				break;
 			case 4:
 				ParkingHandler.verifySpots();
 				break;
+			
 			default:
 				n = 0;
 			}
