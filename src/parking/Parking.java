@@ -259,7 +259,7 @@ public class Parking {
 
 			long minutesParked = Duration.between(entryTime, exitTime).toMinutes();
 
-			amount = minutesParked * 0.10;
+			amount = minutesParked * 0.10 * getVehicleSizeSpot(vehicle);
 
 			if (amount < 5.00) {
 				amount = 5.00;
