@@ -25,7 +25,9 @@ public class ParkingHandler {
 
 	public static void verifySpots() {
 		List<ParkingSpot> spot = parkingDao.findAll();
+		//retorna a quantidade de vagas livres reservadas para mensalistas
 		long subsSpots = spot.stream().map(x -> x.getReserve()).filter(x -> x == Reserve.SUBSCRIBER).count();
+		//retorna a quantidade de vagas livres sem reserva
 		long noneSpots = spot.stream().map(x -> x.getReserve()).filter(x -> x == Reserve.NONE).count();
 		System.out.println("\nFree Subscriber spots: " + subsSpots);
 		System.out.println("Free spots: " + noneSpots);
@@ -40,13 +42,19 @@ public class ParkingHandler {
 		String plate = sc.next();
 		Vehicle vehicle = vehicleDao.findByPlate(plate);
 		Gate gate;
+		
+		//verifica se a placa do veículo existe no banco (se é um veículo mensalista ou caminhão de entrega
+		//se não estiver no banco, vai ser realizado a entrada dos dados do veículo
 		if (vehicle == null) {
 			System.out.print("Enter the category of the vehicle (CASUAL, PUBLIC_SERVICE): ");
 			Category category = Category.valueOf(sc.next().toUpperCase());
 
+			//se o veículo for diferente de avulso ou de serviço público, é necessário o cadastro do veículo
 			if (category.name() != "CASUAL" && category.name() != "PUBLIC_SERVICE") {
 				throw new VehicleException("This vehicle need a previous register to entry");
 			}
+			
+			//veículo da categoria PUBLIC SERVICE é atribuito PUBLIC SERVICE ao tipo dele
 			VehicleType type;
 			if (category.name() == "PUBLIC_SERVICE") {
 				type = VehicleType.PUBLIC_SERVICE;
@@ -58,6 +66,7 @@ public class ParkingHandler {
 			vehicle = new Vehicle(plate, category, type);
 		}
 
+		//veículos que não são mensalistas ou caminhões de entrega precisam entrar pelas suas respectivas cancelas
 		if (vehicle.getCategory().name() != "SUBSCRIBER" && vehicle.getCategory().name() != "PUBLIC_SERVICE"
 				&& vehicle.getCategory().name() != "DELIVERY_TRUCK") {
 			System.out.print("Enter the id of the entry gate: ");
@@ -68,6 +77,7 @@ public class ParkingHandler {
 			gate = gateDao.findById(1);
 		}
 
+		//adiciona o veículo não cadastrado a coleção
 		vehicles.add(Parking.registerEntry(vehicle, gate));
 
 		return vehicles;
@@ -80,11 +90,14 @@ public class ParkingHandler {
 		System.out.print("\nEnter the license plate to exit the parking lot: ");
 		String plate = sc.next();
 		Vehicle vehicle = vehicleDao.findByPlate(plate);
+		//busca o veículo não cadastrado no estacionamento
 		if (vehicle == null) {
 			vehicle = vehicles.stream().filter(x -> x.getPlate().equals(plate)).findFirst().get();
 		}
 		List<ParkingSpot> list = parkingDao.findByVehicle(vehicle);
 		Gate gate;
+		
+		//veículos que não são mensalistas ou caminhões de entrega precisam sair pelas suas respectivas cancelas
 		if (vehicle.getCategory().name() != "SUBSCRIBER" && vehicle.getCategory().name() != "PUBLIC_SERVICE"
 				&& vehicle.getCategory().name() != "DELIVERY_TRUCK") {
 			System.out.print("Enter the id of the exit gate: ");

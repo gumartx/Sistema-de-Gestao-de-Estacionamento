@@ -29,18 +29,25 @@ public class Parking {
 	public static Vehicle registerEntry(Vehicle vehicle, Gate gate) {
 
 		List<ParkingSpot> spot = parkingDao.findAll();
+		
+		//retorna a quantidade de vagas que serão preenchidas
 		List<ParkingSpot> result = getFreeSpots(vehicle, spot);
 
+		//apenas veículos avulsos recebem ticket
 		if (vehicle.getCategory().name() == "CASUAL") {
+			
 			if (validateEntry(vehicle, gate, result)) {
 				Ticket ticket = registerTicket(vehicle, gate);
 				ticketDao.insert(ticket);
 			} else {
 				throw new GateException("Entry not allowed for this vehicle at this gate.");
 			}
+			
 		} else {
+			
 			if (validateEntry(vehicle, gate, result)) {
 
+				//usando a mesma instancia de veículo para vincular as vagas
 				Map<String, Vehicle> map = new HashMap<>();
 
 				for (ParkingSpot s : result) {
@@ -100,11 +107,15 @@ public class Parking {
 	private static List<ParkingSpot> getFreeSpots(Vehicle vehicle, List<ParkingSpot> spot) {
 		List<ParkingSpot> result;
 
+		//retorna a quantidade de vaga que serão ocupadas pelo veículo
 		int vehicleSize = getVehicleSpotSize(vehicle);
+		
 		if (vehicle.getCategory().name() == "SUBSCRIBER") {
+			//retorna as vagas livres reservadas
 			result = spot.stream().limit(vehicleSize).toList();
 
 		} else {
+			//retorna as demais vagas livres
 			result = spot.stream().skip(200).limit(vehicleSize).toList();
 
 		}
@@ -114,14 +125,17 @@ public class Parking {
 	public static void registerExit(Vehicle vehicle, Gate gate, List<ParkingSpot> spot) {
 		VehicleType type = vehicle.getType();
 
+		//verifica se a cancela é de saída
 		if (!gate.getType().equals(GateType.EXIT)) {
 			throw new ParkingException("Exit not allowed at this gate");
 		}
 
+		//verifica se a moto está saindo pela sua cancela
 		if (type == VehicleType.MOTORCYCLE && gate.getNumber() != 10) {
 			throw new ParkingException("Exit not allowed for this vehicle at this gate");
 		}
 
+		//atualização do ticket no banco do veículo avulso
 		if (vehicle.getCategory() == Category.CASUAL) {
 			Ticket ticket = ticketDao.findByVehicle(vehicle).stream().findFirst().get();
 			ticket.setExitTime(LocalDateTime.now());
@@ -152,6 +166,7 @@ public class Parking {
 
 	}
 
+	//retorna quantidade de vagas utilizadas por cada tipo de veículo
 	private static int getVehicleSpotSize(Vehicle vehicle) {
 		VehicleType type = vehicle.getType();
 
@@ -169,6 +184,7 @@ public class Parking {
 		}
 	}
 
+	//validar os dados para a entrada no estacionamento
 	private static boolean validateEntry(Vehicle vehicle, Gate gate, List<ParkingSpot> spot) {
 		Category vehicleCategory = vehicle.getCategory();
 		VehicleType type = vehicle.getType();
@@ -177,6 +193,7 @@ public class Parking {
 			throw new ParkingException("Vehicle is already in the parking lot");
 		}
 
+		//verifica se tem vaga para o veículo (veículos de serviço publico não ocupam vaga)
 		if (vehicleCategory != Category.PUBLIC_SERVICE) {
 			if (!spot.isEmpty()) {
 				for (ParkingSpot s : spot) {
@@ -192,14 +209,17 @@ public class Parking {
 			}
 		}
 
+		//verifica se a cancela é de entrada
 		if (!gate.getType().equals(GateType.ENTRY)) {
 			return false;
 		}
 
+		//motos so podem entrar pela cancela 5
 		if (type == VehicleType.MOTORCYCLE) {
 			return gate.getNumber() == 5;
 		}
 
+		//caminhões so podem entrar pela cancela 1
 		if (type == VehicleType.TRUCK) {
 			return gate.getNumber() == 1;
 		}
@@ -221,6 +241,7 @@ public class Parking {
 		return false;
 	}
 
+	//calculo da quantidade paga com base no tempo do veiculo dentro do estacionamento
 	private static double calculateAmount(Ticket ticket, Vehicle vehicle) {
 		Category vehicleCategory = vehicle.getCategory();
 		double amount = 0.0;

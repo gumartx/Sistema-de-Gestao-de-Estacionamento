@@ -22,13 +22,15 @@ public class VehicleRegistration {
 		System.out.print("Category of the vehicle (SUBSCRIBER, DELIVERY_TRUCK): ");
 		Category category = Category.valueOf(sc.next().toUpperCase());
 
+		//verifica se o veículo com sua respectiva categoria pode ser cadastrado
 		if (category.name() != "SUBSCRIBER" && category.name() != "DELIVERY_TRUCK") {
 			throw new VehicleException("You can not register this vehicle");
 		}
 		
-		System.out.print("Vehicle type (Car, Motorcycle, Delivery_truck): ");
+		System.out.print("Vehicle type (Car, Motorcycle, Truck): ");
 		VehicleType type = VehicleType.valueOf(sc.next().toUpperCase());
 
+		//verifica se o veículo com sua respectiva categoria pode ser cadastrado
 		if (type.name() == "PUBLIC_SERVICE") {
 			throw new VehicleException("This vehicle type does not need a registration");
 		}

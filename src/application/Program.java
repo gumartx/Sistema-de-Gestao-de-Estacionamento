@@ -14,6 +14,7 @@ public class Program {
 	public static void main(String[] args) {
 
 		Scanner sc = new Scanner(System.in);
+		//coleção dos veículos que não possuem cadastro
 		Set<Vehicle> vehicles = new HashSet<>();
 		
 		int n = 1;
